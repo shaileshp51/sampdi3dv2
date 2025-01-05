@@ -1,0 +1,7 @@
+# The chains involved in protein-DNA complex are: ACD
+# that goes as value for the option `-cc` to sampdi3d.py
+# Note here DNA is double-stranded. In case of protein mutation single amino acid
+# wild-type and mutant information is needed. For example, in case of protein mutation 
+# (K->A) at resid 36 in chain A. The space separated fields would contain following info:
+# MutatingChain WildtypeAA ResID MutantAA
+A K 38 A

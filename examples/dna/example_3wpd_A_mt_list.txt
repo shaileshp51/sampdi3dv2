@@ -1,0 +1,9 @@
+# The chains involved in protein-DNA complex are: AC
+# Note here DNA is single-stranded. Still DNA mutations info takes base-pairs
+# for consistency, in such case canonical base-pairs are used for both wild-type
+# and mutant. For example, in case of DNA mutation (A->G), it would be (AT->GC).
+# Mutating DNA chain is C the space separated fields contain following info:
+# MutatingChainForwardStrand WildtypeBasePair ResIDForwardStrand MutantBasePair
+C GC 10 AT
+C GC 10 CG
+C GC 10 TA
