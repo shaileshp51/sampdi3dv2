@@ -8,8 +8,8 @@ We  have  installed  and  tested  sampdi3dv2  on  a  machine  running  Ubuntu  2
 
 ## Dependencies
 We can keep the dependences in two group: (1) third-party tool dependencies; and (2) python dependencies.
-### Third-party tools
-SAMPDI-3Dv2 uses below listed third-party tools to calculated features used for making the prediction from the input structure file (PDB v 3.0).
+### Third-party tools: Acquiring
+SAMPDI-3Dv2 uses below listed third-party tools to analyze structure and these are used for calculating features used for making the prediction from the input structure file (PDB v 3.0).
 
  - DSSP: Download  it from  https://swift.cmbi.umcn.nl/gv/dssp/ and install using the instructions provided on the their website. We have used DSSP which is distribued with name mkdssp (v2.0.4).
 
@@ -21,13 +21,32 @@ SAMPDI-3Dv2 uses below listed third-party tools to calculated features used for 
 
 - UniRef50: Download  uniref50  from  https://www.uniprot.org/help/downloads  and  build  the  database  to  use.
 
+### Third-party tools: Configuration
+Users should create a directory ``software`` in the root-folder of this package, and place the executables of above mentioned 
+third party tools inside ``software`` folder, and adjust the paths accordinaly in the ``configuration.py`` file in this folder.
+
+##### Configuring DSSP, X3DNA-DSSR and Scwrl4
+```python
+
+    config["dssp_exe"] = f"{base_location}/software/dssp"
+    config["x3dna_exe"] = f"{base_location}/software/x3dna-dssr"
+    config["scwrl4_exe"] = f"{base_location}/software/scwrl4/Scwrl4"
+```
+Notes: 
+- The ``base_location`` used above referes to the root-folder of the package and ``{base_location}/software/`` referrs to its subfolder ``software``, that we created while startining configuration.
+- Scwrl4 is installed in folder ``{base_location}/software/scwrl4``, users may install it in the recommended location or even at different location but they edit the path to absolute path of the ``Scwrl4`` executable.
+
+##### Configuring PSI-BLAST and UniRef50
+Users can install blast and configure uniref50 in a common path and to use it, user can export the environemnt variable ``SAMPDI3Dv2_HOME``. Alternatively users can comment line: 22. and provide absolute path to install directory of blast and uniref50 databse in lines 30 and 31, respectively.
+
 ### Python packages
 
 SAMPDI-3Dv2 requires following packages and mentioned versions to be installed in the Python (v3.11.11) to work
--   numpy (1.26.4)
--   pandas (2.2.3)
--   prody (2.4.1)
--   xgboost (2.1.1)
+-   numpy (v1.26.4)
+-   pandas (v2.2.3)
+-   prody (v2.4.1)
+-   xgboost (v2.1.1)
+-   joblib (v1.4.2)
 -   pdb-tools: a fork of it from https://github.com/shaileshp51/pdb-tools and install it. This version handles alternate positions of the atoms from the PDB differently (alternate positons are considered based on residue as well as atom level) compared to original pdb-tools. We use only the highest occupancy alternate coordinate set in out work.
 
 ### Use a conda environment 
