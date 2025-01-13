@@ -72,6 +72,7 @@ Users can get the help message that details all the available options in sampdi3
 ```
 python sampdi3d.py --help
 ```
+Note: When users are not inside the ``sampdi3dv2`` folder or its subfolders, they should use the absoulte path of the executable ``sampdi3d.py``.
 
 Two examples one for each of protein and DNA mutations are provided in the ``example`` folder that can be run as detailed below:
 
