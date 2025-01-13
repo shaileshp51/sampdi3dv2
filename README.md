@@ -34,7 +34,7 @@ third party tools inside ``software`` folder, and adjust the paths accordinaly i
 ```
 Notes: 
 - The ``base_location`` used above referes to the root-folder of the package and ``{base_location}/software/`` referrs to its subfolder ``software``, that we created while startining configuration.
-- Scwrl4 is installed in folder ``{base_location}/software/scwrl4``, users may install it in the recommended location or even at different location but they edit the path to absolute path of the ``Scwrl4`` executable.
+- Scwrl4 is installed in folder ``{base_location}/software/scwrl4``, users may install it in the recommended location (then no need to edit the location of ``scwrl4_exe``), or even at different location but they must set the path to absolute path of the ``Scwrl4`` executable to the ``scwrl4_exe``.
 
 ##### Configuring PSI-BLAST and UniRef50
 Users can install blast and configure uniref50 in a common path and to use it, user can export the environemnt variable ``SAMPDI3Dv2_HOME``. Alternatively users can comment line: 22. and provide absolute path to install directory of blast and uniref50 databse in lines 30 and 31, respectively.
