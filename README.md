@@ -58,12 +58,23 @@ Users can alternatively try creating a conda environment from the environemnt.ya
 ``conda  activate  py311_sampdi3dv2``
 
 ##### pull pdb-tools with updated ``pdb_selaltloc`` from repository https://github.com/shaileshp51/pdb-tools
-``cd  pdb-tools``
-``python  setup.py  install``
+```bash
+
+cd  pdb-tools
+python  setup.py  install
+```
 
 This choice simplifies the process of preparing the python environment.
 
-## Example
+## Help and Example
+Users should activate the ``environment`` created for ``sampdi3dv2``, that will be ``py311_sampdi3dv2``, if created using ``environment.yml``.
+Users can get the help message that details all the available options in sampdi3dv2 as follows:
+```
+python sampdi3d.py --help
+```
+
+Two examples one for each of protein and DNA mutations are provided in the ``example`` folder that can be run as detailed below:
+
 ##### Examples of predicting binding free energy change due to single amino acids mutation for a protein-DNA complex
 change directory to examples/protein
 ``cd  examples/protein``
