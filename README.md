@@ -89,4 +89,4 @@ change directory to examples/dna
 ``python  ../../sampdi3d.py  -i  3wpd.pdb  -cc  AC  -d  dna  -j  3wpd_C  -f  3wpd_A_mt_list.txt  -k  fasta  pdb  pssm  csv``
 
 ## Publication
-Comming soon...
+Rimal, P.; Paul, S.K.; Panday, S.K.; Alexov, E. Further Development of SAMPDI-3D: A Machine Learning Method for Predicting Binding Free Energy Changes Caused by Mutations in Either Protein or DNA. Genes 2025, 16, 101. https://doi.org/10.3390/genes16010101 
