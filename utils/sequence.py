@@ -882,21 +882,395 @@ def mutation_type(aa1_label, wild, mutant):
     return mutation_lbl
 
 
-def get_protein_polymer_sequence(pdb_file, outfileprefix):
+# def get_protein_polymer_sequence(pdb_file, outfileprefix):
+#     """
+#     Parse the PDB file to extract the protein sequence while ignoring expression tags.
+
+#     Args:
+#         pdb_file (str): Path to the PDB file.
+#         outfileprefix (str): Prefix for the output files.
+
+#     Returns:
+#         tuple: A tuple containing:
+#             - resmap_list (list): A list of residue mappings with detailed information.
+#             - fasta_file (str): Path to the generated FASTA file containing the protein sequence.
+
+#     Raises:
+#         SystemExit: If no backbone atoms are found in the PDB file.
+#     """
+#     # Define the residue selection string for proteins
+#     protein_selstr = "(resname {})".format(" ".join(aa3_combined))
+
+#     # Parse the PDB structure
+#     structure = pdy.parsePDB(pdb_file)
+#     bb_atoms = structure.select(protein_selstr + " and name N CA C O")
+#     if bb_atoms is None:
+#         logger_obj.error(f"File: {pdb_file} - No backbone atoms found.\n")
+#         sys.exit()
+
+#     # Initialize the header and chain iterator
+#     chains = bb_atoms.getHierView().iterChains()
+#     header = parse_pdb_header(pdb_file)
+
+#     for chain in chains:
+#         chain_id = chain.getChid()
+#         residues = list(chain.iterResidues())
+#         structural_residues = {}
+#         seqres = {}
+
+#         # Process residues and their backbone atoms
+#         for residue in residues:
+#             residue_backbone = residue.select("name N CA C O")
+#             if residue_backbone is not None:
+#                 for atom in residue_backbone:
+#                     reskey = (
+#                         atom.getResnum(),
+#                         atom.getIcode().strip(),
+#                         atom.getResname(),
+#                     )
+#                     if reskey not in structural_residues:
+#                         structural_residues[reskey] = [atom.getName()]
+#                     else:
+#                         structural_residues[reskey].append(atom.getName())
+
+#         # Handle missing residues
+#         remark_residues = []
+#         if header and "missing" in header and chain_id in header["missing"]:
+#             remark_residues = header["missing"][chain_id]
+
+#         logger_obj.debug("structural_residues:" + str(structural_residues))
+#         logger_obj.debug("remark_residues:" + str(remark_residues))
+#         # Combine residues and sort by residue number
+#         all_residues = {
+#             (r[0], r[1]): r[2]
+#             for r in list(structural_residues.keys()) + remark_residues
+#         }
+#         logger_obj.debug("all_residues:" + str(all_residues))
+#         all_residues = {
+#             r[0]: r[1] for r in sorted(all_residues.items(), key=lambda x: x[0][0])
+#         }
+#         logger_obj.debug(
+#             "length, sorted all_residues:"
+#             + str(len(all_residues))
+#             + " "
+#             + str(all_residues)
+#         )
+#         logger_obj.debug(
+#             f"length, header['seqres']['{chain_id}']:"
+#             + str(len(header["seqres"][chain_id]))
+#             + " "
+#             + str(header["seqres"][chain_id])
+#         )
+
+#         # Resolve discrepancies with SEQRES and expression tags
+#         if (
+#             header
+#             and "seqres" in header
+#             and len(header["seqres"][chain_id]) == len(all_residues)
+#         ):
+#             seqres[chain_id] = {}
+#             for srn, rinfo in zip(header["seqres"][chain_id], all_residues.items()):
+#                 seqres[chain_id][rinfo[0]] = srn
+#                 if srn != rinfo[1]:
+#                     logger_obj.debug("conflict: " + str(rinfo) + " seq: " + str(srn))
+
+#         if header and "seqadv" in header and chain_id in header["seqadv"]:
+#             expression_tags = header["seqadv"][chain_id].get("EXPRESSION TAG", [])
+#             for tag in expression_tags:
+#                 if (tag[0], tag[1]) in all_residues:
+#                     del all_residues[(tag[0], tag[1])]
+#                     logger_obj.debug(
+#                         f"chain: {chain_id}, deleting expression tag: {tag}"
+#                     )
+
+#         # Detect gaps in the sequence
+#         gaps = []
+#         all_residues_keys = list(all_residues.keys())
+#         for i in range(1, len(all_residues)):
+#             k = all_residues_keys[i]
+#             k_prev = all_residues_keys[i - 1]
+#             if int(k[0]) - int(k_prev[0]) > 1:
+#                 gaps.append(f"{k_prev[0] + 1} to {k[0] - 1}")
+#         logger_obj.debug(f"Gaps detected: {gaps}")
+
+#         # Convert residues to sequences
+#         sequence_one_letter = [three_to_one(res[1]) for res in all_residues.items()]
+
+#         # Output sequences and gaps
+#         logger_obj.debug(
+#             f"SEQRES (Chain {chain_id}):\n"
+#             + "".join([three_to_one(r) for r in header["seqres"][chain_id]]),
+#         )
+#         logger_obj.debug(
+#             f"ATOMS+MISSING-EXPRESSION_TAG (Chain {chain_id}):\n"
+#             + "".join(sequence_one_letter)
+#         )
+
+#         # Create residue mapping list
+#         resmap_list = [
+#             (i + 1, e[0][0], e[0][1], chain_id, e[1], three_to_one(e[1]))
+#             for i, e in enumerate(all_residues.items())
+#         ]
+
+#         # Save residue mapping to CSV
+#         resmap_file = f"{outfileprefix}_chain{chain_id}_resmap.csv"
+#         list_to_csv(
+#             resmap_list,
+#             fieldnames=[
+#                 "SeqResID",
+#                 "PdbResID",
+#                 "PdbICode",
+#                 "Chain",
+#                 "ResName3",
+#                 "ResName1",
+#             ],
+#             filename=resmap_file,
+#         )
+
+#         # Save protein sequence to FASTA file
+#         fasta_file = f"{outfileprefix}_chain{chain_id}.fasta"
+#         with open(fasta_file, "w") as seq_file:
+#             seq_file.write(
+#                 f">{outfileprefix}|chain {chain_id}|protein-sequence excluding expression tag\n"
+#             )
+#             seq_file.write("".join(sequence_one_letter))
+#             seq_file.write("\n")
+#         logger_obj.info(f"protein sequence:\n{''.join(sequence_one_letter)}")
+
+#     return resmap_list, fasta_file, resmap_file
+
+
+# ... (rest of the code remains the same)
+
+# def get_protein_polymer_sequence(pdb_file, outfileprefix, use_coord_as_ground_truth=False):
+#     """
+#     Parse the PDB file to extract the protein sequence while ignoring expression tags.
+
+#     Args:
+#         pdb_file (str): Path to the PDB file.
+#         outfileprefix (str): Prefix for the output files.
+#         use_coord_as_ground_truth (bool): If True, forces the use of the
+#                                           coordinate-derived sequence (ATOMS + REMARK 465)
+#                                           as the ground truth, ignoring SEQRES/SEQADV.
+
+#     Returns:
+#         tuple: A tuple containing:
+#             - resmap_list (list): A list of residue mappings with detailed information.
+#             - fasta_file (str): Path to the generated FASTA file containing the protein sequence.
+#             - resmap_file (str): Path to the generated residue map CSV file.
+
+#     Raises:
+#         SystemExit: If no backbone atoms are found in the PDB file.
+#     """
+#     # Define the residue selection string for proteins
+#     protein_selstr = "(resname {})".format(" ".join(aa3_combined))
+
+#     # Parse the PDB structure
+#     structure = pdy.parsePDB(pdb_file)
+#     bb_atoms = structure.select(protein_selstr + " and name N CA C O")
+#     if bb_atoms is None:
+#         logger_obj.error(f"File: {pdb_file} - No backbone atoms found.\n")
+#         # Use a non-zero exit code for failure, as sys is not imported
+#         # sys.exit() 
+#         # Since 'sys' is not imported, let's raise a RuntimeError instead of SystemExit 
+#         # to stop execution in a function.
+#         raise RuntimeError(f"File: {pdb_file} - No backbone atoms found.")
+
+#     # Initialize the header and chain iterator
+#     chains = bb_atoms.getHierView().iterChains()
+    
+#     # 1. Parse the PDB header
+#     header = parse_pdb_header(pdb_file)
+
+#     for chain in chains:
+#         chain_id = chain.getChid()
+#         residues = list(chain.iterResidues())
+#         structural_residues = {}
+#         # seqres is no longer needed here, but kept for clarity: seqres = {}
+
+#         # Process residues and their backbone atoms (Coordinate Ground Truth)
+#         for residue in residues:
+#             residue_backbone = residue.select("name N CA C O")
+#             if residue_backbone is not None:
+#                 for atom in residue_backbone:
+#                     # Key: (PdbResID, PdbICode, ResName3)
+#                     reskey = (
+#                         atom.getResnum(),
+#                         atom.getIcode().strip(),
+#                         atom.getResname(),
+#                     )
+#                     # We only care that the residue is present, not necessarily all atoms
+#                     if reskey not in structural_residues:
+#                         structural_residues[reskey] = [atom.getName()]
+#                     else:
+#                         structural_residues[reskey].append(atom.getName())
+
+#         # 2. Get missing residues from REMARK 465
+#         remark_residues = []
+#         if header and "missing" in header and chain_id in header["missing"]:
+#             remark_residues = header["missing"][chain_id]
+
+#         logger_obj.debug("structural_residues:" + str(structural_residues))
+#         logger_obj.debug("remark_residues:" + str(remark_residues))
+        
+#         # 3. Combine structural atoms and missing residues (Our *Primary* Sequence List)
+#         all_residues_with_icode = {
+#             (r[0], r[1]): r[2]
+#             for r in list(structural_residues.keys()) + remark_residues
+#         }
+        
+#         # Sort by residue number, removing ICode from the key for a simple sequence map
+#         all_residues = {
+#             r[0]: r[1] 
+#             for r in sorted(all_residues_with_icode.items(), key=lambda x: x[0][0])
+#         }
+
+#         # The header must be considered missing or incomplete if:
+#         # a) header is None
+#         # b) 'seqres' key is missing from the header
+#         # c) the chain_id isn't in 'seqres'
+#         # d) the user explicitly forces coordinate-as-ground-truth.
+        
+#         is_header_missing = (
+#             header is None 
+#             or "seqres" not in header 
+#             or chain_id not in header["seqres"]
+#         )
+
+#         # 4. Sequence Reconciliation Logic
+#         if not is_header_missing and not use_coord_as_ground_truth:
+#             # ORIGINAL LOGIC: The PDB contains SEQRES and we want to use it
+#             logger_obj.debug("Using SEQRES-based reconciliation.")
+            
+#             # Resolve discrepancies with SEQRES and expression tags
+#             if len(header["seqres"][chain_id]) == len(all_residues):
+#                 # Only log conflicts if the lengths match, otherwise the sequence 
+#                 # from coordinates is probably better.
+#                 seqres_map = {}
+#                 for srn, rinfo in zip(header["seqres"][chain_id], all_residues.items()):
+#                     seqres_map[rinfo[0]] = srn
+#                     if srn != rinfo[1]:
+#                         logger_obj.debug("conflict: " + str(rinfo) + " seq: " + str(srn))
+
+#             if "seqadv" in header and chain_id in header["seqadv"]:
+#                 # Remove residues marked as 'EXPRESSION TAG' in SEQADV
+#                 expression_tags = header["seqadv"][chain_id].get("EXPRESSION TAG", [])
+#                 for tag in expression_tags:
+#                     # Note: all_residues uses PdbResID as key (int), but this logic 
+#                     # requires the (PdbResID, PdbICode) tuple key to be present.
+#                     # Since we simplified all_residues to map PdbResID -> ResName3, 
+#                     # we must check against the *original* all_residues_with_icode structure
+#                     # and then remove from the sorted map.
+#                     tag_key = (tag[0], tag[1]) # (PdbResID, PdbICode)
+#                     if tag_key in all_residues_with_icode:
+#                         # Remove from the dictionary used for the final sequence
+#                         del all_residues[tag[0]] # all_residues is keyed by PdbResID (int)
+#                         logger_obj.debug(
+#                             f"chain: {chain_id}, deleting expression tag: {tag}"
+#                         )
+
+#         # ELSE (is_header_missing or use_coord_as_ground_truth is True):
+#         # We proceed with the sequence from ATOMS + REMARK 465 as the ground truth
+#         # which is already captured in `all_residues`.
+#         else:
+#             logger_obj.debug("SEQRES/Header is missing/ignored. Using coordinate-derived sequence as ground truth.")
+#             # Remove the now-defunct SEQRES-based comparison and tag removal logic.
+#             # We assume the coordinate-derived list is correct (as per prompt).
+            
+#         # Detect gaps in the sequence (still relevant for the final sequence)
+#         gaps = []
+#         print("all_residues:", all_residues)
+#         all_residues_keys = list(all_residues.keys())
+#         for i in range(1, len(all_residues)):
+#             k = all_residues_keys[i]
+#             k_prev = all_residues_keys[i - 1]
+#             print(f"Comparing k: {k} with k_prev: {k_prev}")
+#             if int(k[0]) - int(k_prev[0]) > 1:
+#                 gaps.append(f"{k_prev[0] + 1} to {k[0] - 1}")
+#         logger_obj.debug(f"Gaps detected: {gaps}")
+        
+#         # Convert residues to sequences
+#         # all_residues is now a dictionary of {PdbResID: ResName3}
+#         # The .items() gives a sorted list of (PdbResID, ResName3) tuples
+#         sequence_one_letter = [three_to_one(res[1]) for res in all_residues.items()]
+
+#         # Output sequences (updated to reflect the final sequence source)
+#         if not is_header_missing:
+#              logger_obj.debug(
+#                 f"SEQRES (Chain {chain_id}):\n"
+#                 + "".join([three_to_one(r) for r in header["seqres"][chain_id]]),
+#             )
+#         logger_obj.info(
+#             f"Final Sequence (Chain {chain_id}):\n"
+#             + "".join(sequence_one_letter)
+#         )
+
+#         # Create residue mapping list
+#         # Re-derive resmap_list using the keys/values from the final all_residues map.
+#         # We need the ICode back, so we use the original `all_residues_with_icode` 
+#         # filtered down to the final PdbResIDs in `all_residues`.
+#         final_pdb_resids = set(all_residues.keys())
+#         final_residue_mapping = [
+#             e
+#             for e in list(structural_residues.keys()) + remark_residues
+#             if e[0] in final_pdb_resids
+#         ]
+        
+#         # Sort and create final resmap_list
+#         resmap_list = [
+#             (i + 1, e[0], e[1], chain_id, e[2], three_to_one(e[2]))
+#             for i, e in enumerate(sorted(final_residue_mapping, key=lambda x: x[0]))
+#         ]
+
+#         # Save residue mapping to CSV
+#         resmap_file = f"{outfileprefix}_chain{chain_id}_resmap.csv"
+#         # The list_to_csv function is assumed to be defined in utils.common
+#         # For demonstration, we assume it works with the provided fieldnames.
+#         list_to_csv(
+#             resmap_list,
+#             fieldnames=[
+#                 "SeqResID",
+#                 "PdbResID",
+#                 "PdbICode",
+#                 "Chain",
+#                 "ResName3",
+#                 "ResName1",
+#             ],
+#             filename=resmap_file,
+#         )
+
+#         # Save protein sequence to FASTA file
+#         fasta_file = f"{outfileprefix}_chain{chain_id}.fasta"
+#         with open(fasta_file, "w") as seq_file:
+#             seq_file.write(
+#                 f">{outfileprefix}|chain {chain_id}|final-sequence\n"
+#             )
+#             seq_file.write("".join(sequence_one_letter))
+#             seq_file.write("\n")
+            
+#         return resmap_list, fasta_file, resmap_file
+    
+
+def get_protein_polymer_sequence(pdb_file, outfileprefix, use_coord_as_ground_truth=False):
     """
-    Parse the PDB file to extract the protein sequence while ignoring expression tags.
+    Parse the PDB file to extract the protein sequence. Prioritizes coordinate
+    (ATOM) data as ground truth if header data (SEQRES) is missing or overridden.
 
     Args:
         pdb_file (str): Path to the PDB file.
         outfileprefix (str): Prefix for the output files.
+        use_coord_as_ground_truth (bool): If True, forces the use of the
+                                          coordinate-derived sequence (ATOMS + REMARK 465)
+                                          as the ground truth, ignoring SEQRES/SEQADV.
 
     Returns:
         tuple: A tuple containing:
             - resmap_list (list): A list of residue mappings with detailed information.
             - fasta_file (str): Path to the generated FASTA file containing the protein sequence.
+            - resmap_file (str): Path to the generated residue map CSV file.
 
     Raises:
-        SystemExit: If no backbone atoms are found in the PDB file.
+        RuntimeError: If no backbone atoms are found in the PDB file.
     """
     # Define the residue selection string for proteins
     protein_selstr = "(resname {})".format(" ".join(aa3_combined))
@@ -904,25 +1278,32 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix):
     # Parse the PDB structure
     structure = pdy.parsePDB(pdb_file)
     bb_atoms = structure.select(protein_selstr + " and name N CA C O")
+    
     if bb_atoms is None:
-        logger_obj.error(f"File: {pdb_file} - No backbone atoms found.\n")
-        sys.exit()
+        if logger_obj:
+            logger_obj.error(f"File: {pdb_file} - No backbone atoms found.")
+        raise RuntimeError(f"File: {pdb_file} - No backbone atoms found.")
 
-    # Initialize the header and chain iterator
-    chains = bb_atoms.getHierView().iterChains()
+    # 1. Parse the PDB header
     header = parse_pdb_header(pdb_file)
 
-    for chain in chains:
+    # Initialize return values outside chain loop (assuming one chain or combining logic later)
+    resmap_list = []
+    fasta_file = f"{outfileprefix}_chainX.fasta" # Default placeholders
+    resmap_file = f"{outfileprefix}_chainX_resmap.csv"
+
+    for chain in bb_atoms.getHierView().iterChains():
         chain_id = chain.getChid()
         residues = list(chain.iterResidues())
-        structural_residues = {}
-        seqres = {}
+        # structural_residues: { (PdbResID, PdbICode, ResName3): [AtomNames] }
+        structural_residues = {} 
 
-        # Process residues and their backbone atoms
+        # A. Process residues and their backbone atoms (Coordinate Ground Truth)
         for residue in residues:
             residue_backbone = residue.select("name N CA C O")
             if residue_backbone is not None:
                 for atom in residue_backbone:
+                    # Key: (PdbResID, PdbICode, ResName3)
                     reskey = (
                         atom.getResnum(),
                         atom.getIcode().strip(),
@@ -933,108 +1314,118 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix):
                     else:
                         structural_residues[reskey].append(atom.getName())
 
-        # Handle missing residues
-        remark_residues = []
+        # B. Get missing residues from REMARK 465
+        # remark_residues: list of (PdbResID, PdbICode, ResName3) tuples
+        remark_residues = [] 
         if header and "missing" in header and chain_id in header["missing"]:
             remark_residues = header["missing"][chain_id]
 
-        logger_obj.debug("structural_residues:" + str(structural_residues))
-        logger_obj.debug("remark_residues:" + str(remark_residues))
-        # Combine residues and sort by residue number
-        all_residues = {
-            (r[0], r[1]): r[2]
-            for r in list(structural_residues.keys()) + remark_residues
+        # C. Initial Combined Residues (ATOMS + REMARK 465)
+        # This list retains the ICode for the final resmap_list creation.
+        initial_combined_residues = list(structural_residues.keys()) + remark_residues
+        
+        # D. all_residues: {PdbResID (int): ResName3 (str)} used for sequence/gap logic
+        all_residues = { 
+            r[0]: r[2] for r in sorted(initial_combined_residues, key=lambda x: x[0])
         }
-        logger_obj.debug("all_residues:" + str(all_residues))
-        all_residues = {
-            r[0]: r[1] for r in sorted(all_residues.items(), key=lambda x: x[0][0])
-        }
-        logger_obj.debug(
-            "length, sorted all_residues:"
-            + str(len(all_residues))
-            + " "
-            + str(all_residues)
+        
+        # 2. Sequence Reconciliation Logic
+        is_header_missing = (
+            header is None 
+            or "seqres" not in header 
+            or chain_id not in header["seqres"]
         )
-        logger_obj.debug(
-            f"length, header['seqres']['{chain_id}']:"
-            + str(len(header["seqres"][chain_id]))
-            + " "
-            + str(header["seqres"][chain_id])
-        )
+        
+        # The list of tuples that will define the final sequence and resmap_list
+        final_residue_tuples = [] 
+        
+        if not is_header_missing and not use_coord_as_ground_truth:
+            # --- HEADER EXISTS: Run SEQRES Reconciliation & Tag Removal ---
+            if logger_obj:
+                logger_obj.debug("Using SEQRES-based reconciliation.")
+            
+            # The all_residues map already has the combined PDB-derived sequence.
+            # We now apply SEQADV filtering, which modifies all_residues in place.
+            if "seqadv" in header and chain_id in header["seqadv"]:
+                expression_tags = header["seqadv"][chain_id].get("EXPRESSION TAG", [])
+                for tag in expression_tags:
+                    tag_res_id = tag[0] # PdbResID (int)
+                    if tag_res_id in all_residues:
+                        del all_residues[tag_res_id]
+                        if logger_obj:
+                            logger_obj.debug(f"chain: {chain_id}, deleting expression tag: {tag}")
+            
+            # After filtering, rebuild the final list of (PdbResID, ICode, ResName3) tuples 
+            # by matching the PdbResID keys remaining in all_residues against the original
+            # initial_combined_residues list.
+            final_pdb_resids = set(all_residues.keys())
+            
+            # Reconstruct the list of tuples for the final map
+            final_residue_tuples = [
+                r for r in initial_combined_residues 
+                if r[0] in final_pdb_resids
+            ]
+        
+        else:
+            # --- HEADER MISSING/IGNORED: Use Coordinate Ground Truth ---
+            if logger_obj:
+                logger_obj.debug("SEQRES/Header is missing/ignored. Using coordinate-derived sequence as ground truth.")
+            
+            # The initial combined list is the final ground truth
+            final_residue_tuples = initial_combined_residues
 
-        # Resolve discrepancies with SEQRES and expression tags
-        if (
-            header
-            and "seqres" in header
-            and len(header["seqres"][chain_id]) == len(all_residues)
-        ):
-            seqres[chain_id] = {}
-            for srn, rinfo in zip(header["seqres"][chain_id], all_residues.items()):
-                seqres[chain_id][rinfo[0]] = srn
-                if srn != rinfo[1]:
-                    logger_obj.debug("conflict: " + str(rinfo) + " seq: " + str(srn))
 
-        if header and "seqadv" in header and chain_id in header["seqadv"]:
-            expression_tags = header["seqadv"][chain_id].get("EXPRESSION TAG", [])
-            for tag in expression_tags:
-                if (tag[0], tag[1]) in all_residues:
-                    del all_residues[(tag[0], tag[1])]
-                    logger_obj.debug(
-                        f"chain: {chain_id}, deleting expression tag: {tag}"
-                    )
-
-        # Detect gaps in the sequence
+        # Sort the final list
+        final_residue_tuples.sort(key=lambda x: x[0])
+        
+        # 3. Gap Detection (FIXED: Uses integer keys directly)
         gaps = []
-        all_residues_keys = list(all_residues.keys())
-        for i in range(1, len(all_residues)):
-            k = all_residues_keys[i]
-            k_prev = all_residues_keys[i - 1]
-            if int(k[0]) - int(k_prev[0]) > 1:
-                gaps.append(f"{k_prev[0] + 1} to {k[0] - 1}")
-        logger_obj.debug(f"Gaps detected: {gaps}")
+        # Get keys from the *final* sequence map to check for gaps
+        final_res_ids = [r[0] for r in final_residue_tuples] 
+        
+        for i in range(1, len(final_res_ids)):
+            k = final_res_ids[i]
+            k_prev = final_res_ids[i - 1]
+            
+            # k and k_prev are guaranteed to be PdbResID integers
+            if k - k_prev > 1:
+                gaps.append(f"{k_prev + 1} to {k - 1}")
+        
+        if logger_obj:
+            logger_obj.debug(f"Gaps detected: {gaps}")
 
-        # Convert residues to sequences
-        sequence_one_letter = [three_to_one(res[1]) for res in all_residues.items()]
-
-        # Output sequences and gaps
-        logger_obj.debug(
-            f"SEQRES (Chain {chain_id}):\n"
-            + "".join([three_to_one(r) for r in header["seqres"][chain_id]]),
-        )
-        logger_obj.debug(
-            f"ATOMS+MISSING-EXPRESSION_TAG (Chain {chain_id}):\n"
-            + "".join(sequence_one_letter)
-        )
-
-        # Create residue mapping list
-        resmap_list = [
-            (i + 1, e[0][0], e[0][1], chain_id, e[1], three_to_one(e[1]))
-            for i, e in enumerate(all_residues.items())
+        # 4. Sequence Generation (from the final, filtered list of tuples)
+        sequence_one_letter = [
+            three_to_one(res_name3) for pdb_res_id, icode, res_name3 in final_residue_tuples
         ]
 
-        # Save residue mapping to CSV
+        # 5. Create final resmap_list (FIXED: Uses final_residue_tuples)
+        # resmap_list will be generated correctly even if final_residue_tuples is 
+        # based only on structural_residues (i.e., no header).
+        resmap_list = [
+            (i + 1, e[0], e[1], chain_id, e[2], three_to_one(e[2]))
+            for i, e in enumerate(final_residue_tuples)
+        ]
+
+        # 6. Output Files
         resmap_file = f"{outfileprefix}_chain{chain_id}_resmap.csv"
         list_to_csv(
             resmap_list,
             fieldnames=[
-                "SeqResID",
-                "PdbResID",
-                "PdbICode",
-                "Chain",
-                "ResName3",
-                "ResName1",
+                "SeqResID", "PdbResID", "PdbICode", "Chain", "ResName3", "ResName1",
             ],
             filename=resmap_file,
         )
 
-        # Save protein sequence to FASTA file
         fasta_file = f"{outfileprefix}_chain{chain_id}.fasta"
         with open(fasta_file, "w") as seq_file:
             seq_file.write(
-                f">{outfileprefix}|chain {chain_id}|protein-sequence excluding expression tag\n"
+                f">{outfileprefix}|chain {chain_id}|final-sequence\n"
             )
             seq_file.write("".join(sequence_one_letter))
             seq_file.write("\n")
-        logger_obj.info(f"protein sequence:\n{''.join(sequence_one_letter)}")
+            
+        if logger_obj:
+            logger_obj.info(f"protein sequence:\n{''.join(sequence_one_letter)}")
 
     return resmap_list, fasta_file, resmap_file
