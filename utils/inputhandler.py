@@ -268,6 +268,15 @@ Following pre-processing steps will be performed on input-pdb:
         default="output.out",
     )
     parser.add_argument(
+        "--seq-from-coords",
+        dest="derive_seq_from_coords",
+        action="store_true",
+        help=(
+            "Derive sequence directly from ATOM records instead of using the SEQRES header. "
+            "If the header is missing, this mode is enabled automatically."
+        ),
+    )
+    parser.add_argument(
         "-v",
         "--verbosity",
         help="print verbose messages up to level",

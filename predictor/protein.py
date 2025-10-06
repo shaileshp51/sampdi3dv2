@@ -159,6 +159,7 @@ def predict_protein_mutation_ddg(
 
 def predict_mutations_in_protein(
     pdb_file,
+    derive_seq_from_coords,
     mutations_list,
     config,
     no_warnings,
@@ -301,7 +302,7 @@ def predict_mutations_in_protein(
                     protein_resmap_list,
                     protein_fasta_file,
                     protein_resmap_file,
-                ) = get_protein_polymer_sequence(pdb_file, outbase)
+                ) = get_protein_polymer_sequence(pdb_file, outbase, derive_seq_from_coords)
                 temporary_log_files.append(protein_fasta_file)
                 temporary_log_files.append(protein_resmap_file)
                 protein_resmap_dict = {

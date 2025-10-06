@@ -80,6 +80,7 @@ def main():
         )
         preds = predict_mutations_in_protein(
             results["cleaned_pdb"],
+            args.derive_seq_from_coords,
             results["mt_list"],
             config,
             args.verbosity == "none",
