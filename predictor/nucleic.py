@@ -1,19 +1,28 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import sys
 import joblib
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 
+import prody as pdy
 
-from utils.common import *
-from utils.sequence import *
-from utils.structure import *
-from utils.dna import *
+from utils.common import dict_to_csv
 
 from utils.pssm import set_logger as set_pssm_logger
-from utils.dna import set_logger as set_dna_logger
+from utils.dna import (
+    set_logger as set_dna_logger,
+    run_dssp_and_x3dna,
+    get_protein_dna_interactions,
+    get_protein_wt_base_interactions,
+    get_dna_structure_features,
+    mutation_ss_dna,
+    mutation_type_dna,
+    mismatch_dna,
+    pair_type,
+)
 
 # Let's suppress the log messages from ProDy, to keep stdout clear.
 pdy.confProDy(verbosity="none")

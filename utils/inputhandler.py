@@ -215,7 +215,6 @@ def validate_input(args):
     return results
 
 
-
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
         if text.startswith("R|"):

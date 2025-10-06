@@ -9,13 +9,25 @@ import xgboost as xgb
 import pandas as pd
 import joblib
 
-from utils.common import *
-from utils.sequence import *
-from utils.structure import *
-from utils.pssm import *
-from utils.dna import *
-from utils.pssm import set_logger as set_pssm_logger
-from utils.dna import set_logger as set_dna_logger
+from utils.common import dict_to_csv
+
+from utils.sequence import (
+    mutation_hydrophobicity,
+    mutation_polarity,
+    mutation_type,
+    mutation_size,
+    mutation_hbonds,
+    mutation_chemical,
+    net_volume,
+    net_hydrophobicity,
+    net_flexibility,
+    aa1_map,
+    aa3to1,
+    aa1_mttype_label,
+)
+
+from utils.pssm import get_pssm_features, set_logger as set_pssm_logger
+from utils.dna import set_logger as set_dna_logger, run_dssp_and_x3dna
 
 # Let's suppress the log messages from ProDy, to keep stdout clear.
 # pdy.confProDy(verbosity="none")
@@ -302,7 +314,9 @@ def predict_mutations_in_protein(
                     protein_resmap_list,
                     protein_fasta_file,
                     protein_resmap_file,
-                ) = get_protein_polymer_sequence(pdb_file, outbase, derive_seq_from_coords)
+                ) = get_protein_polymer_sequence(
+                    pdb_file, outbase, derive_seq_from_coords
+                )
                 temporary_log_files.append(protein_fasta_file)
                 temporary_log_files.append(protein_resmap_file)
                 protein_resmap_dict = {

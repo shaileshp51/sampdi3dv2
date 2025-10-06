@@ -1039,7 +1039,7 @@ def mutation_type(aa1_label, wild, mutant):
 
 #     return resmap_list, fasta_file, resmap_file
 
-    
+
 def get_protein_polymer_sequence(pdb_file, outfileprefix, derive_seq_from_coords=False):
     """
     Parse the PDB file to extract the protein sequence. Prioritizes coordinate
@@ -1067,7 +1067,7 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix, derive_seq_from_coords
     # Parse the PDB structure
     structure = pdy.parsePDB(pdb_file)
     bb_atoms = structure.select(protein_selstr + " and name N CA C O")
-    
+
     if bb_atoms is None:
         if logger_obj:
             logger_obj.error(f"File: {pdb_file} - No backbone atoms found.")
@@ -1111,9 +1111,7 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix, derive_seq_from_coords
 
         # D. Determine whether header data exists
         is_header_missing = (
-            header is None
-            or "seqres" not in header
-            or chain_id not in header["seqres"]
+            header is None or "seqres" not in header or chain_id not in header["seqres"]
         )
 
         final_residue_tuples = []
@@ -1125,7 +1123,9 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix, derive_seq_from_coords
 
             # Reinstate SEQRES vs coordinate consistency check
             seqres_declared = header["seqres"][chain_id]
-            coord_seq = [r[2] for r in sorted(initial_combined_residues, key=lambda x: x[0])]
+            coord_seq = [
+                r[2] for r in sorted(initial_combined_residues, key=lambda x: x[0])
+            ]
 
             if len(seqres_declared) != len(coord_seq):
                 logger_obj.warning(
@@ -1134,7 +1134,9 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix, derive_seq_from_coords
                     "Possible expression tag, truncation, or incomplete model."
                 )
             else:
-                for i, (declared, observed) in enumerate(zip(seqres_declared, coord_seq)):
+                for i, (declared, observed) in enumerate(
+                    zip(seqres_declared, coord_seq)
+                ):
                     if declared != observed:
                         logger_obj.debug(
                             f"[Chain {chain_id}] residue mismatch at position {i+1}: "
@@ -1149,7 +1151,9 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix, derive_seq_from_coords
                     if tag_res_id in all_residues:
                         del all_residues[tag_res_id]
                         if logger_obj:
-                            logger_obj.debug(f"chain: {chain_id}, deleting expression tag: {tag}")
+                            logger_obj.debug(
+                                f"chain: {chain_id}, deleting expression tag: {tag}"
+                            )
 
             # Construct final residue list post-filtering
             final_pdb_resids = set(all_residues.keys())
@@ -1171,7 +1175,7 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix, derive_seq_from_coords
         gaps = [
             f"{final_res_ids[i-1] + 1} to {final_res_ids[i] - 1}"
             for i in range(1, len(final_res_ids))
-            if final_res_ids[i] - final_res_ids[i-1] > 1
+            if final_res_ids[i] - final_res_ids[i - 1] > 1
         ]
         if logger_obj:
             logger_obj.debug(f"Gaps detected: {gaps}")
@@ -1192,7 +1196,12 @@ def get_protein_polymer_sequence(pdb_file, outfileprefix, derive_seq_from_coords
         list_to_csv(
             resmap_list,
             fieldnames=[
-                "SeqResID", "PdbResID", "PdbICode", "Chain", "ResName3", "ResName1",
+                "SeqResID",
+                "PdbResID",
+                "PdbICode",
+                "Chain",
+                "ResName3",
+                "ResName1",
             ],
             filename=resmap_file,
         )
