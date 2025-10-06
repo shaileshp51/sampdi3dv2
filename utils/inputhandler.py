@@ -214,7 +214,7 @@ def validate_input(args):
 
     return results
 
-   
+
 
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
@@ -236,10 +236,10 @@ def argument_parser(version, enable_jobname, logger):
     parser = argparse.ArgumentParser(
         prog="sampdi3d.py",
         description=f"""
-            R|SAMPDI-3Dv{version} : Predict the free energy change of binding due to 
+            SAMPDI-3Dv{version} : Predict the free energy change of binding due to 
             point mutation in protein or DNA for protein-DNA binding.
             
-            For method details check: Rimal, P.; Paul, S.K.; Panday, S.K.; Alexov, E. 
+            For details, see: Rimal, P.; Paul, S.K.; Panday, S.K.; Alexov, E. 
             Genes 2025, 16, 101. https://doi.org/10.3390/genes16010101
         """,
         formatter_class=SmartFormatter,
