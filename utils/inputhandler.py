@@ -214,13 +214,20 @@ def validate_input(args):
 
     return results
 
+   
 
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
         if text.startswith("R|"):
             return text[2:].splitlines()
-        # this is the RawTextHelpFormatter._split_lines
-        return argparse.HelpFormatter._split_lines(self, text, width)
+        return super()._split_lines(text, width)
+
+    def _fill_text(self, text, width, indent):
+        if text.startswith("R|"):
+            # Remove "R|" and preserve line breaks exactly as written
+            return "\n".join(indent + line for line in text[2:].splitlines())
+        # otherwise use normal wrap
+        return super()._fill_text(text, width, indent)
 
 
 def argument_parser(version, enable_jobname, logger):
@@ -233,8 +240,6 @@ def argument_parser(version, enable_jobname, logger):
             point mutation in protein or DNA for protein-DNA binding.
             
             For method details check: Rimal, P.; Paul, S.K.; Panday, S.K.; Alexov, E. 
-            Further Development of SAMPDI-3D: A Machine Learning Method for Predicting 
-            Binding Free Energy Changes Caused by Mutations in Either Protein or DNA. 
             Genes 2025, 16, 101. https://doi.org/10.3390/genes16010101
         """,
         formatter_class=SmartFormatter,
