@@ -229,7 +229,7 @@ def argument_parser(version, enable_jobname, logger):
     parser = argparse.ArgumentParser(
         prog=f"sampdi3d.py",
         description=(
-            f"SAMPDI-3D_v{version} : "
+            f"SAMPDI-3Dv{version} : "
             "Predict the free energy change of binding due to "
             "point mutation in protein or DNA for protein-DNA binding"
         ),

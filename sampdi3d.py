@@ -22,7 +22,7 @@ from predictor.protein import predict_mutations_in_protein
 warnings.simplefilter("ignore")
 
 __author__ = ["Panday, Shailesh Kumar"]
-__version__ = 2.0
+__version__ = 2.1
 
 # Define the base location for third-party tools and dependencies
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
