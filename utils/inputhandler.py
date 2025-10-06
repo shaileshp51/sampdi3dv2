@@ -227,7 +227,7 @@ def argument_parser(version, enable_jobname, logger):
     set_logger(logger)
 
     parser = argparse.ArgumentParser(
-        prog=f"sampdi-3d.py",
+        prog=f"sampdi3d.py",
         description=(
             f"SAMPDI-3D_v{version} : "
             "Predict the free energy change of binding due to "
