@@ -271,10 +271,9 @@ Following pre-processing steps will be performed on input-pdb:
         "--seq-from-coords",
         dest="derive_seq_from_coords",
         action="store_true",
-        help=(
-            "Derive sequence directly from ATOM records instead of using the SEQRES header. "
-            "If the header is missing, this mode is enabled automatically."
-        ),
+        help="""R|Derive sequence directly from ATOM records instead of using the SEQRES header. 
+            If the header is missing, this mode is enabled automatically. (default: False)
+            """,
     )
     parser.add_argument(
         "-v",
